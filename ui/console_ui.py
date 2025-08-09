@@ -22,6 +22,7 @@ class ConsoleUI:
     @staticmethod
     def show_tools_info():
         tools_info = """🌤️  Weather Info  📁 File Operations  🚀 Command Execution 📖 Read Files    📝 Write Files     ✏️  Edit Files
+🌐 Open Browser     🔍 Web Search       🛡️ CVE Search
 💬 /switch_model - Switch AI model
 🎯 /mode <name> - Set agent mode (planning, log_attempts, act)
 🛑 /pause or Ctrl+C - Pause agent for guidance"""

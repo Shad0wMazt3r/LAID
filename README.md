@@ -19,3 +19,12 @@ Local AI-assisted Development (or LAID for short) is a series of experiments to 
 2. Navigate to the project directory: `cd LAID`
 3. Install dependencies: `pip install -r requirements.txt`
 4. Run the main script: `python laid.py`
+
+### Features
+- Local LLM integration via LM Studio
+- File operations (read, write, edit)
+- Command execution
+- Web browsing and search
+- CVE vulnerability search
+- Agent modes (planning, acting, logging)
+- Real-time pause/resume with Ctrl+C

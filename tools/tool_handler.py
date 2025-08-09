@@ -5,6 +5,8 @@ from rich.syntax import Syntax
 from .file_operations import FileOperations
 from .command_executor import CommandExecutor
 from .weather_service import WeatherService
+from .browser_service import BrowserService
+from .cve_service import CVEService
 
 console = Console()
 
@@ -13,6 +15,8 @@ class ToolHandler:
         self.file_ops = FileOperations()
         self.command_executor = CommandExecutor()
         self.weather_service = WeatherService()
+        self.browser_service = BrowserService()
+        self.cve_service = CVEService()
     
     def handle_tool_call(self, tool_call):
         function_name = tool_call["function"]["name"]
@@ -53,6 +57,26 @@ class ToolHandler:
                 return {"error": "Missing required parameters: filepath, old_text, new_text"}
             return self.file_ops.edit_file(arguments["filepath"], arguments["old_text"], arguments["new_text"])
         
+        elif function_name == "open_browser":
+            if "url" not in arguments:
+                return {"error": "Missing required parameter: url"}
+            return self.browser_service.open_browser(arguments["url"])
+        
+        elif function_name == "search":
+            if "query" not in arguments:
+                return {"error": "Missing required parameter: query"}
+            return self.browser_service.search(arguments["query"])
+        
+        elif function_name == "search_cve":
+            if "cve_id" not in arguments:
+                return {"error": "Missing required parameter: cve_id"}
+            return self.cve_service.search_cve(arguments["cve_id"])
+        
+        elif function_name == "search_cve_by_keyword":
+            if "keyword" not in arguments:
+                return {"error": "Missing required parameter: keyword"}
+            return self.cve_service.search_cve_by_keyword(arguments["keyword"])
+        
         return {"error": f"Unknown function: {function_name}"}
     
     def display_tool_result(self, function_name, result):
@@ -74,5 +98,30 @@ class ToolHandler:
                         content_lines.append(f"📄 {f}")
                 files_text = "\n".join(content_lines)
                 console.print(Panel(files_text, title="📂 Directory Contents", border_style="blue"))
+            elif function_name == "search" and "results" in result:
+                console.print()
+                search_text = f"Search: {result['query']}\n\n"
+                for i, res in enumerate(result['results'], 1):
+                    search_text += f"{i}. {res['title']}\n{res['url']}\n{res['content']}\n\n"
+                console.print(Panel(search_text, title="🔍 Search Results", border_style="blue"))
+            elif function_name == "search_cve" and "cve_id" in result:
+                console.print()
+                cve_text = f"CVE ID: {result['cve_id']}\n"
+                cve_text += f"CVSS: {result.get('cvss', 'N/A')}\n"
+                cve_text += f"Published: {result.get('published', 'N/A')}\n\n"
+                cve_text += f"Summary:\n{result.get('summary', 'No summary available')}\n\n"
+                if result.get('references'):
+                    cve_text += "References:\n"
+                    for ref in result['references']:
+                        cve_text += f"• {ref}\n"
+                console.print(Panel(cve_text, title="🛡️ CVE Information", border_style="red"))
+            elif function_name == "search_cve_by_keyword" and "results" in result:
+                console.print()
+                keyword_text = f"Keyword: {result['keyword']}\n\n"
+                for i, cve in enumerate(result['results'], 1):
+                    keyword_text += f"{i}. {cve['cve_id']} (CVSS: {cve['cvss']})\n"
+                    keyword_text += f"   Published: {cve['published']}\n"
+                    keyword_text += f"   {cve['summary']}\n\n"
+                console.print(Panel(keyword_text, title="🛡️ CVE Keyword Search", border_style="red"))
             else:
                 console.print(f"[green]✅ {result}[/green]")

@@ -127,6 +127,62 @@ class LMStudioChatbot:
                         "required": ["filepath", "old_text", "new_text"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "open_browser",
+                    "description": "Open a URL in the default browser",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "url": {"type": "string", "description": "URL to open"}
+                        },
+                        "required": ["url"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "search",
+                    "description": "Search the web using SearXNG",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "description": "Search query"}
+                        },
+                        "required": ["query"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "search_cve",
+                    "description": "Search for CVE vulnerability information",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "cve_id": {"type": "string", "description": "CVE ID (e.g., CVE-2021-44228 or 2021-44228)"}
+                        },
+                        "required": ["cve_id"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "search_cve_by_keyword",
+                    "description": "Search for CVEs by keyword (e.g., 'apache', 'sql injection')",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "keyword": {"type": "string", "description": "Keyword to search for in CVE descriptions"}
+                        },
+                        "required": ["keyword"]
+                    }
+                }
             }
         ]
     
