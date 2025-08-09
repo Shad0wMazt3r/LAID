@@ -30,12 +30,14 @@ class ModelManager:
             if 0 <= model_index < len(available_models):
                 model_id = available_models[model_index]["id"]
                 if self.switch_model(model_id):
-                    console.print(f"[green]✅ Switched to: {available_models[model_index]['name']}[/green]")
+                    console.print(f"[green]✅ Switched to: {available_models[model_index]['id']}[/green]")
+                    console.print(f"[blue]Model has to be loaded, first response might take a little while. Check LM Studio Developer Logs for details.[/blue]")
                     return True
         except ValueError:
             if self.switch_model(model_selector):
-                model_name = next((m["name"] for m in available_models if m["id"] == model_selector), model_selector)
+                model_name = next((m["id"] for m in available_models if m["id"] == model_selector), model_selector)
                 console.print(f"[green]✅ Switched to: {model_name}[/green]")
+                console.print(f"[blue]Model has to be loaded, first response might take a little while. Check LM Studio Developer Logs for details.[/blue]")
                 return True
         
         console.print(f"[red]❌ Model not found: {model_selector}[/red]")
@@ -47,13 +49,13 @@ class ModelManager:
         
         table = Table(show_header=True, header_style="bold cyan")
         table.add_column("#", style="yellow")
-        table.add_column("Model Name", style="green")
+        table.add_column("Provider", style="green")
         table.add_column("Model ID", style="blue")
         table.add_column("Status", style="yellow")
         
         for i, model in enumerate(available_models, 1):
             status = "✅ Current" if model["id"] == current_model else "⏸️ Available"
-            table.add_row(str(i), model["name"], model["id"], status)
+            table.add_row(str(i), "LM Studio", model["id"], status)
         
         console.print()
         console.print(Panel(table, title="🤖 Available Models", border_style="cyan"))
