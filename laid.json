@@ -1,0 +1,20 @@
+{
+  "lm_studio": {
+    "base_url": "http://localhost:1234/v1/",
+    "current_model": "google/gemma-3-4b",
+    "available_models": [
+      {
+        "name": "Gemma 3 4b",
+        "id": "google/gemma-3-4b"
+      },
+      {
+        "name": "Llama 3.2 3b",
+        "id": "meta-llama/llama-3.2-3b-instruct"
+      },
+      {
+        "name": "Qwen 2.5 7b",
+        "id": "qwen/qwen2.5-7b-instruct"
+      }
+    ]
+  }
+}
