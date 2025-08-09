@@ -29,7 +29,12 @@ class LMStudioChatbot:
         self.config = self.load_config()
         self.base_url = self.config["lm_studio"]["base_url"]
         self.model = self.config["lm_studio"]["current_model"]
-        self.messages = []
+        
+        # Add system context
+        system_info = f"System: Windows, Shell: cmd.exe, Current directory: {os.getcwd()}"
+        self.messages = [
+            {"role": "system", "content": system_info}
+        ]
         self.tools = [
             {
                 "type": "function",
@@ -117,32 +122,6 @@ class LMStudioChatbot:
                         "required": ["filepath", "old_text", "new_text"]
                     }
                 }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "switch_model",
-                    "description": "Switch to a different AI model",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "model_id": {"type": "string", "description": "Model ID to switch to"}
-                        },
-                        "required": ["model_id"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "list_models",
-                    "description": "List available AI models",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {},
-                        "required": []
-                    }
-                }
             }
         ]
     
@@ -173,7 +152,7 @@ class LMStudioChatbot:
             json.dump(self.config, f, indent=2)
     
     def switch_model(self, model_id):
-        available_models = self.fetch_models()
+        available_models = self.config["lm_studio"]["available_models"]
         available_ids = [m["id"] for m in available_models]
         if model_id in available_ids:
             self.config["lm_studio"]["current_model"] = model_id
@@ -181,6 +160,48 @@ class LMStudioChatbot:
             self.save_config()
             return True
         return False
+    
+    def handle_switch_model_command(self, user_input):
+        # Extract model selection from /switch_model command
+        parts = user_input.split()
+        if len(parts) == 1:
+            # Show available models
+            available_models = self.config["lm_studio"]["available_models"]
+            table = Table(show_header=True, header_style="bold cyan")
+            table.add_column("#", style="yellow")
+            table.add_column("Model Name", style="green")
+            table.add_column("Model ID", style="blue")
+            table.add_column("Status", style="yellow")
+            
+            for i, model in enumerate(available_models, 1):
+                status = "✅ Current" if model["id"] == self.model else "⏸️ Available"
+                table.add_row(str(i), model["name"], model["id"], status)
+            
+            console.print()
+            console.print(Panel(table, title="🤖 Available Models", border_style="cyan"))
+            console.print("[dim]Usage: /switch_model <number> or /switch_model <model_id>[/dim]")
+            return True
+        
+        model_selector = parts[1]
+        available_models = self.config["lm_studio"]["available_models"]
+        
+        # Try to parse as number first
+        try:
+            model_index = int(model_selector) - 1
+            if 0 <= model_index < len(available_models):
+                model_id = available_models[model_index]["id"]
+                if self.switch_model(model_id):
+                    console.print(f"[green]✅ Switched to: {available_models[model_index]['name']}[/green]")
+                    return True
+        except ValueError:
+            # Try as model ID
+            if self.switch_model(model_selector):
+                model_name = next((m["name"] for m in available_models if m["id"] == model_selector), model_selector)
+                console.print(f"[green]✅ Switched to: {model_name}[/green]")
+                return True
+        
+        console.print(f"[red]❌ Model not found: {model_selector}[/red]")
+        return True
     
     def get_weather(self, location):
         # Mock weather data for testing
@@ -197,7 +218,7 @@ class LMStudioChatbot:
             return {"error": f"Weather data not available for {location}"}
     
     def execute_command(self, command):
-        console.print()  # Ensure newline
+        console.print()
         console.print(Panel(f"🚀 Execute Command: [bold cyan]{command}[/bold cyan]\n\n[yellow]Type 'y' to approve or 'n' to deny[/yellow]", 
                            title="[red]⚠️  APPROVAL REQUIRED[/red]", border_style="red"))
         approval = Prompt.ask("[bold yellow]Approve[/bold yellow]", choices=["y", "n"], default="n")
@@ -222,13 +243,21 @@ class LMStudioChatbot:
     
     def list_files(self, directory):
         try:
-            files = os.listdir(directory)
-            return {"files": files}
+            items = os.listdir(directory)
+            files = []
+            directories = []
+            for item in items:
+                full_path = os.path.join(directory, item)
+                if os.path.isdir(full_path):
+                    directories.append(item)
+                else:
+                    files.append(item)
+            return {"files": files, "directories": directories}
         except Exception as e:
             return {"error": str(e)}
     
     def write_file(self, filepath, content):
-        console.print()  # Ensure newline
+        console.print()
         console.print(Panel(f"📝 Write File: [bold green]{filepath}[/bold green]\n[dim]{content[:100]}...[/dim]\n\n[yellow]Type 'y' to approve or 'n' to deny[/yellow]", 
                            title="[red]⚠️  APPROVAL REQUIRED[/red]", border_style="red"))
         approval = Prompt.ask("[bold yellow]Approve[/bold yellow]", choices=["y", "n"], default="n")
@@ -249,7 +278,7 @@ class LMStudioChatbot:
         table.add_column("With", style="green")
         table.add_row(old_text[:50] + "...", new_text[:50] + "...")
         
-        console.print()  # Ensure newline
+        console.print()
         console.print(Panel(table, title=f"[red]⚠️  EDIT FILE: {filepath}[/red]", border_style="red"))
         console.print("[yellow]Type 'y' to approve or 'n' to deny[/yellow]")
         approval = Prompt.ask("[bold yellow]Approve[/bold yellow]", choices=["y", "n"], default="n")
@@ -301,21 +330,15 @@ class LMStudioChatbot:
             if "filepath" not in arguments or "old_text" not in arguments or "new_text" not in arguments:
                 return {"error": "Missing required parameters: filepath, old_text, new_text"}
             return self.edit_file(arguments["filepath"], arguments["old_text"], arguments["new_text"])
-        elif function_name == "switch_model":
-            if "model_id" not in arguments:
-                return {"error": "Missing required parameter: model_id"}
-            success = self.switch_model(arguments["model_id"])
-            if success:
-                return {"success": f"Switched to model: {arguments['model_id']}"}
-            else:
-                return {"error": "Model not found"}
-        elif function_name == "list_models":
-            models = self.fetch_models()
-            formatted_models = [{"name": m.get("id", "Unknown").split("/")[-1], "id": m["id"]} for m in models]
-            return {"models": formatted_models, "current_model": self.model}
+
         return {"error": f"Unknown function: {function_name}"}
     
     def chat_stream(self, user_input):
+        # Handle /switch_model command before sending to LLM
+        if user_input.strip().startswith("/switch_model"):
+            self.handle_switch_model_command(user_input.strip())
+            return None
+        
         self.messages.append({"role": "user", "content": user_input})
         
         payload = {
@@ -404,22 +427,18 @@ class LMStudioChatbot:
                                 console.print()
                                 syntax = Syntax(result["content"][:500], "text", theme="monokai", line_numbers=True)
                                 console.print(Panel(syntax, title=f"📄 File Content", border_style="blue"))
-                            elif function_name == "list_files" and "files" in result:
+                            elif function_name == "list_files" and ("files" in result or "directories" in result):
                                 console.print()
-                                files_text = "\n".join([f"📁 {f}" if os.path.isdir(f) else f"📄 {f}" for f in result["files"]])
+                                content_lines = []
+                                if "directories" in result:
+                                    for d in result["directories"]:
+                                        content_lines.append(f"📁 {d}/")
+                                if "files" in result:
+                                    for f in result["files"]:
+                                        content_lines.append(f"📄 {f}")
+                                files_text = "\n".join(content_lines)
                                 console.print(Panel(files_text, title="📂 Directory Contents", border_style="blue"))
-                            elif function_name == "list_models" and "models" in result:
-                                console.print()
-                                table = Table(show_header=True, header_style="bold cyan")
-                                table.add_column("Model Name", style="green")
-                                table.add_column("Model ID", style="blue")
-                                table.add_column("Status", style="yellow")
-                                
-                                for model in result["models"]:
-                                    status = "✅ Current" if model["id"] == result["current_model"] else "⏸️ Available"
-                                    table.add_row(model["name"], model["id"], status)
-                                
-                                console.print(Panel(table, title="🤖 Available Models", border_style="cyan"))
+
                             else:
                                 console.print(f"[green]✅ {result}[/green]")
                         
@@ -457,7 +476,8 @@ def main():
     # Tool info panel
     tools_info = """🌤️  Weather Info  📁 File Operations  🚀 Command Execution
 📖 Read Files    📝 Write Files     ✏️  Edit Files
-🤖 Model Switch  📊 List Models"""
+💬 /switch_model - Switch AI model"""
+    console.print()
     console.print(Panel(tools_info, title="[cyan]Available Tools[/cyan]", border_style="cyan"))
     
     # Show current model
