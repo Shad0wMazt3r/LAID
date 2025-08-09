@@ -22,9 +22,11 @@ class ConsoleUI:
     @staticmethod
     def show_tools_info():
         tools_info = """🌤️  Weather Info  📁 File Operations  🚀 Command Execution 📖 Read Files    📝 Write Files     ✏️  Edit Files
-💬 /switch_model - Switch AI model"""
+💬 /switch_model - Switch AI model
+🎯 /mode <name> - Set agent mode (planning, log_attempts, act)
+🛑 /pause or Ctrl+C - Pause agent for guidance"""
         console.print()
-        console.print(Panel(tools_info, title="[cyan]Available Tools[/cyan]", border_style="cyan"))
+        console.print(Panel(tools_info, title="[cyan]Available Tools & Commands[/cyan]", border_style="cyan"))
     
     @staticmethod
     def show_current_model(model):

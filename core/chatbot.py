@@ -1,11 +1,13 @@
 import urllib.request
 import json
+import signal
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.live import Live
 from config.config_manager import ConfigManager
 from models.model_manager import ModelManager
 from tools.tool_handler import ToolHandler
+from modes.mode_manager import ModeManager
 
 console = Console()
 
@@ -14,6 +16,9 @@ class LMStudioChatbot:
         self.config_manager = ConfigManager()
         self.model_manager = ModelManager(self.config_manager)
         self.tool_handler = ToolHandler()
+        self.mode_manager = ModeManager()
+        self.paused = False
+        signal.signal(signal.SIGINT, self._handle_interrupt)
         
         instructions = self.config_manager.get_instructions()
         system_info = self.config_manager.get_system_info()
@@ -130,7 +135,24 @@ class LMStudioChatbot:
             self.model_manager.handle_switch_model_command(user_input.strip())
             return None
         
-        self.messages.append({"role": "user", "content": user_input})
+        if user_input.strip().startswith("/mode"):
+            return self._handle_mode_command(user_input.strip())
+        
+        if user_input.strip() == "/pause":
+            return self._handle_pause_command()
+        
+        # Reset pause flag
+        if self.paused:
+            self.paused = False
+            console.print(f"[green]Resuming with your guidance...[/green]")
+        
+        # Add mode prompt if active
+        mode_prompt = self.mode_manager.get_current_mode_prompt()
+        if mode_prompt:
+            enhanced_input = mode_prompt + "\n\nUser Input: " + user_input
+            self.messages.append({"role": "user", "content": enhanced_input})
+        else:
+            self.messages.append({"role": "user", "content": user_input})
         
         payload = {
             "model": self.config_manager.get_current_model(),
@@ -164,6 +186,8 @@ class LMStudioChatbot:
                             if 'choices' in chunk and chunk['choices']:
                                 delta = chunk['choices'][0].get('delta', {})
                                 if 'content' in delta:
+                                    if self.paused:
+                                        break
                                     content = delta['content']
                                     console.print(content, end='', style="dim white")
                                     full_response += content
@@ -220,6 +244,9 @@ class LMStudioChatbot:
                 
                 return self.chat_stream("")
             else:
+                if self.paused:
+                    self.messages.append({"role": "assistant", "content": full_response})
+                    return "PAUSED"
                 self.messages.append({"role": "assistant", "content": full_response})
                 console.clear()
                 console.print("─" * 50)
@@ -228,3 +255,34 @@ class LMStudioChatbot:
         except Exception as e:
             console.print(f"[red]Chat error: {e}[/red]")
             return f"Error: {e}"
+    
+    def _handle_mode_command(self, command):
+        parts = command.split()
+        if len(parts) == 1:
+            # Show current mode and available modes
+            current = self.mode_manager.current_mode or "None"
+            available = ", ".join(self.mode_manager.get_available_modes())
+            console.print(f"[cyan]Current mode: {current}[/cyan]")
+            console.print(f"[cyan]Available modes: {available}[/cyan]")
+            console.print(f"[dim]Usage: /mode <mode_name> or /mode clear[/dim]")
+        elif len(parts) == 2:
+            mode_name = parts[1]
+            if mode_name == "clear":
+                self.mode_manager.clear_mode()
+                console.print(f"[green]Mode cleared[/green]")
+            elif self.mode_manager.set_mode(mode_name):
+                console.print(f"[green]Mode set to: {mode_name}[/green]")
+            else:
+                console.print(f"[red]Unknown mode: {mode_name}[/red]")
+        return None
+    
+    def _handle_pause_command(self):
+        console.print(f"[yellow]🛑 Agent paused. Provide guidance or instructions to continue.[/yellow]")
+        console.print(f"[dim]The agent will incorporate your next message into its context.[/dim]")
+        return None
+    
+    def _handle_interrupt(self, signum, frame):
+        self.paused = True
+        console.print(f"\n[yellow]🛑 Agent paused by Ctrl+C. Provide guidance to continue.[/yellow]")
+        console.print(f"[dim]Your next input will steer the agent.[/dim]")
+        return "PAUSED"
