@@ -20,8 +20,7 @@ class ConsoleUI:
     
     @staticmethod
     def show_tools_info():
-        tools_info = """🌤️  Weather Info  📁 File Operations  🚀 Command Execution
-📖 Read Files    📝 Write Files     ✏️  Edit Files
+        tools_info = """🌤️  Weather Info  📁 File Operations  🚀 Command Execution 📖 Read Files    📝 Write Files     ✏️  Edit Files
 💬 /switch_model - Switch AI model"""
         console.print()
         console.print(Panel(tools_info, title="[cyan]Available Tools[/cyan]", border_style="cyan"))

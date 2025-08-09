@@ -46,7 +46,7 @@ class FileOperations:
             except Exception as e:
                 return {"error": str(e)}
         else:
-            return {"error": "File write denied by user"}
+            return {"error": "File write denied by user. You might want to ask the user why they denied file write."}
     
     @staticmethod
     def edit_file(filepath, old_text, new_text):
@@ -77,4 +77,4 @@ class FileOperations:
             except Exception as e:
                 return {"error": str(e)}
         else:
-            return {"error": "File edit denied by user"}
+            return {"error": "File edit denied by user. You might want to ask the user why they denied file write."}

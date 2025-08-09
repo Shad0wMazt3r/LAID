@@ -13,24 +13,27 @@ class LMStudioChatbot:
         self.model_manager = ModelManager(self.config_manager)
         self.tool_handler = ToolHandler()
         
+        instructions = self.config_manager.get_instructions()
         system_info = self.config_manager.get_system_info()
-        self.messages = [{"role": "system", "content": system_info}]
+
+        initial_information = instructions + "\n" + system_info
+        self.messages = [{"role": "system", "content": initial_information}]
         
         self.tools = [
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_weather",
-                    "description": "Get weather information for a location",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "location": {"type": "string", "description": "City name or location"}
-                        },
-                        "required": ["location"]
-                    }
-                }
-            },
+            # {
+            #     "type": "function",
+            #     "function": {
+            #         "name": "get_weather",
+            #         "description": "Get weather information for a location",
+            #         "parameters": {
+            #             "type": "object",
+            #             "properties": {
+            #                 "location": {"type": "string", "description": "City name or location"}
+            #             },
+            #             "required": ["location"]
+            #         }
+            #     }
+            # },
             {
                 "type": "function",
                 "function": {
@@ -117,7 +120,7 @@ class LMStudioChatbot:
             "model": self.config_manager.get_current_model(),
             "messages": self.messages,
             "max_tokens": 2000,
-            "temperature": 0.7,
+            "temperature": 0.1,
             "stream": True,
             "tools": self.tools
         }
