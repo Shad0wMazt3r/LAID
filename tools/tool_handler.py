@@ -28,6 +28,11 @@ class ToolHandler:
                 return {"error": "Missing required parameter: command"}
             return self.command_executor.execute_command(arguments["command"])
         
+        elif function_name == "change_directory":
+            if "directorypath" not in arguments:
+                return {"error": "Missing required parameter: directorypath"}
+            return self.file_ops.change_directory(arguments["directorypath"])
+
         elif function_name == "read_file":
             if "filepath" not in arguments:
                 return {"error": "Missing required parameter: filepath"}

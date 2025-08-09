@@ -7,6 +7,15 @@ from rich.table import Table
 console = Console()
 
 class FileOperations:
+    
+    @staticmethod
+    def change_directory(directorypath):
+        try:
+            os.chdir(directorypath)
+            return {"success": f"Changed directory to: {directorypath}"}
+        except Exception as e:
+            return {"error": str(e)}
+
     @staticmethod
     def read_file(filepath):
         try:

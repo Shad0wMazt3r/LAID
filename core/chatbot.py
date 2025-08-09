@@ -51,6 +51,20 @@ class LMStudioChatbot:
             {
                 "type": "function",
                 "function": {
+                    "name": "change_directory",
+                    "description": "Change your current directory (requires user approval)",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "directorypath": {"type": "string", "description": "Path to the directory"}
+                        },
+                        "required": ["directorypath"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
                     "name": "read_file",
                     "description": "Read contents of a file",
                     "parameters": {
