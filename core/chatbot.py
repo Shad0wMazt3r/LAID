@@ -1,6 +1,8 @@
 import urllib.request
 import json
 from rich.console import Console
+from rich.markdown import Markdown
+from rich.live import Live
 from config.config_manager import ConfigManager
 from models.model_manager import ModelManager
 from tools.tool_handler import ToolHandler
@@ -163,7 +165,7 @@ class LMStudioChatbot:
                                 delta = chunk['choices'][0].get('delta', {})
                                 if 'content' in delta:
                                     content = delta['content']
-                                    console.print(content, end='', style="white")
+                                    console.print(content, end='', style="dim white")
                                     full_response += content
                                 elif 'tool_calls' in delta:
                                     if delta['tool_calls']:
@@ -219,6 +221,9 @@ class LMStudioChatbot:
                 return self.chat_stream("")
             else:
                 self.messages.append({"role": "assistant", "content": full_response})
+                console.clear()
+                console.print("─" * 50)
+                console.print(Markdown(full_response))
                 return full_response
         except Exception as e:
             console.print(f"[red]Chat error: {e}[/red]")

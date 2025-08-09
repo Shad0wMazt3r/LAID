@@ -32,13 +32,6 @@ class ConfigManager:
     
     def get_available_models(self):
         models_list = requests.get(f"{self.get_base_url()}models").json()["data"]
-        # print(models_list)
-        # for model in models_list:
-            # model["id"] = model.pop("id")
-            # model["name"] = model.pop("name")
-            # print(model)
-        # print(self.config["lm_studio"].get("available_models", []))
-        # return self.config["lm_studio"].get("available_models", [])
         return models_list
     
     def set_current_model(self, model_id):

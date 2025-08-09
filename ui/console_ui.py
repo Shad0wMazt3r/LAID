@@ -4,6 +4,7 @@ from rich.text import Text
 from rich.prompt import Prompt
 from rich.align import Align
 from rich.rule import Rule
+from rich.markdown import Markdown
 import colorama
 
 colorama.init()
@@ -38,6 +39,12 @@ class ConsoleUI:
     def show_assistant_prompt():
         console.print("[bold green]Assistant:[/bold green] ", end="")
     
+    @staticmethod
+    def show_markdown(md_text):
+        """Render markdown-formatted text in the console."""
+        markdown = Markdown(md_text)
+        console.print(markdown)
+
     @staticmethod
     def show_goodbye():
         console.print("[yellow]👋 Goodbye![/yellow]")
