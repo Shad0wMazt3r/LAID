@@ -1,6 +1,10 @@
-## LAID — Local AI-Assisted Development
+# LAID — Local AI-Assisted Development
 
-**LAID** (Local AI-Assisted Development) is an experimental toolset for leveraging local large language models (L-LLMs) to enhance your software development workflow.
+**LAID** (Local AI-Assisted Development) is an experimental toolset for leveraging local large language models (L-LLMs) to enhance your software development and security engineering workflow.
+
+## Screenshots
+![LAID screenshot 1](images/1.png)
+![LAID screenshot 2](images/2.png)
 
 ### Project Overview
 
