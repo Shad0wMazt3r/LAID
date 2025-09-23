@@ -7,6 +7,9 @@ from .command_executor import CommandExecutor
 from .weather_service import WeatherService
 from .browser_service import BrowserService
 from .cve_service import CVEService
+from .nmap_scanner import NmapScanner
+from .fuzzer import Fuzzer
+from .exploit_runner import ExploitRunner
 
 console = Console()
 
@@ -17,6 +20,9 @@ class ToolHandler:
         self.weather_service = WeatherService()
         self.browser_service = BrowserService()
         self.cve_service = CVEService()
+        self.nmap_scanner = NmapScanner()
+        self.fuzzer = Fuzzer()
+        self.exploit_runner = ExploitRunner()
     
     def handle_tool_call(self, tool_call):
         function_name = tool_call["function"]["name"]
@@ -30,7 +36,9 @@ class ToolHandler:
         elif function_name == "execute_command":
             if "command" not in arguments:
                 return {"error": "Missing required parameter: command"}
-            return self.command_executor.execute_command(arguments["command"])
+            expect_prompts = arguments.get("expect_prompts")
+            timeout = arguments.get("timeout", 30)
+            return self.command_executor.execute_command(arguments["command"], expect_prompts, timeout)
         
         elif function_name == "change_directory":
             if "directorypath" not in arguments:
@@ -76,7 +84,43 @@ class ToolHandler:
             if "keyword" not in arguments:
                 return {"error": "Missing required parameter: keyword"}
             return self.cve_service.search_cve_by_keyword(arguments["keyword"])
-        
+
+        # Security tools
+        elif function_name == "nmap_scan":
+            if "target" not in arguments:
+                return {"error": "Missing required parameter: target"}
+            scan_type = arguments.get("scan_type", "basic")
+            options = arguments.get("options")
+            return self.nmap_scanner.scan_target(arguments["target"], scan_type, options)
+
+        elif function_name == "generate_fuzz_payloads":
+            payload_type = arguments.get("payload_type", "sql")
+            count = arguments.get("count", 50)
+            return {"payloads": self.fuzzer.generate_payloads(payload_type, count)}
+
+        elif function_name == "fuzz_web_parameter":
+            if "url" not in arguments or "param_name" not in arguments:
+                return {"error": "Missing required parameters: url, param_name"}
+            payloads = arguments.get("payloads")
+            method = arguments.get("method", "GET")
+            headers = arguments.get("headers")
+            return self.fuzzer.fuzz_web_parameter(arguments["url"], arguments["param_name"], payloads, method, headers)
+
+        elif function_name == "run_metasploit_exploit":
+            if "module_name" not in arguments:
+                return {"error": "Missing required parameter: module_name"}
+            options = arguments.get("options")
+            return self.exploit_runner.run_metasploit_exploit(arguments["module_name"], options)
+
+        elif function_name == "run_custom_exploit":
+            if "exploit_code" not in arguments or "target_info" not in arguments:
+                return {"error": "Missing required parameters: exploit_code, target_info"}
+            return self.exploit_runner.run_custom_exploit(arguments["exploit_code"], arguments["target_info"])
+
+        elif function_name == "create_exploit_template":
+            exploit_type = arguments.get("exploit_type", "buffer_overflow")
+            return {"template": self.exploit_runner.create_exploit_template(exploit_type)}
+
         return {"error": f"Unknown function: {function_name}"}
     
     def display_tool_result(self, function_name, result):

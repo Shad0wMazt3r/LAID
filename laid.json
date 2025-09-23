@@ -1,20 +1,17 @@
 {
   "lm_studio": {
-    "base_url": "http://localhost:1234/v1/",
-    "current_model": "google/gemma-3-4b",
-    "available_models": [
-      {
-        "name": "Gemma 3 4b",
-        "id": "google/gemma-3-4b"
-      },
-      {
-        "name": "Llama 3.2 3b",
-        "id": "meta-llama/llama-3.2-3b-instruct"
-      },
-      {
-        "name": "Qwen 2.5 7b",
-        "id": "qwen/qwen2.5-7b-instruct"
-      }
-    ]
+    "base_url": "http://172.25.96.1:1234/v1/",
+    "current_model": "google/gemma-3-4b"
+  },
+  "ctf": {
+    "current_session": null,
+    "auto_save": true,
+    "cache_enabled": true,
+    "max_cache_age": 3600,
+    "tools": {
+      "nmap_path": "nmap",
+      "metasploit_path": "msfconsole",
+      "burp_path": "burp"
+    }
   }
 }
