@@ -50,7 +50,42 @@ This project integrates the following components into a seamless local AI-assist
 
 * **Local LLM Integration** via LM Studio
 * **File Manipulation** — Create, edit, and delete code files through L-LLM instructions
-* **Command Execution** for fine-grained development control
+* **Autonomous Command Execution** — Execute shell commands without user approval, including interactive sessions (SSH, password entry, etc.)
+* **CTF Support** — Specialized tools for capture-the-flag challenges including network scanning, fuzzing, and exploit execution
 * **CVE Vulnerability Search** to enhance security checks
 * **Agent Operation Modes** — Supports planning, acting, and verbose logging flows
 * **Interruptible Workflow** — Pause/resume execution using Ctrl+C
+
+### Autonomous Shell Interaction
+
+LAID enables the LLM to interact with the shell autonomously, including handling interactive commands like SSH logins:
+
+```json
+{
+  "command": "ssh user@target.com",
+  "expect_prompts": [
+    {"prompt": "password:", "response": "secretpassword"},
+    {"prompt": "$", "response": "whoami"}
+  ]
+}
+```
+
+This allows for automated penetration testing workflows and CTF challenge solving without manual intervention.
+
+### Available Tools
+
+LAID provides the LLM with access to various tools for comprehensive security testing and development assistance:
+
+#### Security & CTF Tools
+* **Network Scanning** — NMAP integration for port scanning and service enumeration
+* **Web Fuzzing** — Parameter fuzzing with custom payloads for vulnerability discovery
+* **Exploit Execution** — Metasploit and custom exploit support
+* **CVE Database** — Search and retrieve vulnerability information
+* **SSH/Shell Interaction** — Autonomous command execution with interactive support
+
+#### Development Tools
+* **File Operations** — Read, write, edit, and manage files
+* **Web Services** — Browser automation and web searching
+* **Weather API** — External API integration example
+
+All tools are designed to work autonomously once instructed by the LLM, enabling complex multi-step workflows.
