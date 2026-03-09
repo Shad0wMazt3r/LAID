@@ -2,6 +2,8 @@
 from core.chatbot import LMStudioChatbot
 from ui.console_ui import ConsoleUI
 
+EXIT_COMMANDS = {'quit', 'exit', 'q'}
+
 def main():
     ui = ConsoleUI()
     ui.show_startup()
@@ -13,7 +15,7 @@ def main():
     while True:
         user_input = ui.get_user_input()
         
-        if user_input.lower() in ['quit', 'exit', 'q']:
+        if user_input.lower() in EXIT_COMMANDS:
             ui.show_goodbye()
             break
         
