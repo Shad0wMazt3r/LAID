@@ -5,7 +5,7 @@ import requests
 
 class ConfigManager:
     def __init__(self, config_file="laid.json"):
-        self.config_file = config_file
+        self.config_file = os.path.abspath(config_file)
         self.config = self.load_config()
     
     def load_config(self):
