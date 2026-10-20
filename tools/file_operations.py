@@ -10,11 +10,19 @@ class FileOperations:
     
     @staticmethod
     def change_directory(directorypath):
-        try:
-            os.chdir(directorypath)
-            return {"success": f"Changed directory to: {directorypath}"}
-        except Exception as e:
-            return {"error": str(e)}
+        target = os.path.abspath(directorypath)
+        console.print()
+        console.print(Panel(f"📁 Change Directory: [bold green]{directorypath}[/bold green]\n[dim]Resolved path: {target}[/dim]\n\n[yellow]Type 'y' to approve or 'n' to deny[/yellow]",
+                           title="[red]⚠️  APPROVAL REQUIRED[/red]", border_style="red"))
+        approval = Prompt.ask("[bold yellow]Approve[/bold yellow]", choices=["y", "n"], default="n")
+        if approval == 'y':
+            try:
+                os.chdir(directorypath)
+                return {"success": f"Changed directory to: {directorypath}"}
+            except Exception as e:
+                return {"error": str(e)}
+        else:
+            return {"error": "Directory change denied by user. You might want to ask the user why they denied directory change."}
 
     @staticmethod
     def read_file(filepath):
